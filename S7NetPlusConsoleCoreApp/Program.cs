@@ -5,6 +5,7 @@ namespace S7NetPlusConsoleCoreApp
 {
     class Program
     {
+
         [Obsolete]
         static void Main(string[] args)
         {
@@ -12,37 +13,27 @@ namespace S7NetPlusConsoleCoreApp
             {
                 try
                 {
-
-                    //plc.WriteTimeout = -10;
-                    //plc.ReadTimeout = -10;
+                    const int START_BY_ADR = 8;
                     XPlc myPLC = new XPlc(plc);
-                    myPLC.Close();
-                    myPLC.Open();
+                    myPLC.RestartConnection();
 
-                    //object objTesting = plc.ReadClass<object>(42, 30);
                     //Test testing = plc.ReadClass<Test>(42, 0);
                     Test testing = new Test();
-                    plc.ReadClass(testing, 42, 30);
+                    plc.ReadClass(testing, 42, START_BY_ADR);
                     char vOut = Convert.ToChar(testing.AlbertoRecibir11);
-                    Test testing1 = plc.ReadClass<Test>(42, 30);
+                    int sintValue = Convert.ToInt32(plc.Read("DB42.DBB9"));
+                    Test testing1 = plc.ReadClass<Test>(42, START_BY_ADR);
 
-                    //Array.Reverse(testing.AlbertoRecibir9);
+
                     //if (BitConverter.IsLittleEndian)
-                    //    Array.Reverse(testing.AlbertoRecibir9);
-                    //var prueba = BitConverter.ToSingle(testing.AlbertoRecibir9, 0);
-                    //Array.Reverse(testing.AlbertoRecibir3);
-
-                    //GetDateTimeFromDosDateTime(ByteToInt16(bDate)).ToString());
-
-                    //var fecha = S7.Net.Types.DateTime.FromByteArray(testing.AlbertoRecibir3);
+                    //    Array.Reverse(testing.AlbertoRecibir4);
 
                     testing.AlbertoRecibir1 = !testing.AlbertoRecibir1;
                     testing.AlbertoRecibir2++;
                     testing.AlbertoRecibir9++;
                     testing.AlbertoRecibir11++;
-                    plc.WriteClass(testing, 42, 30);
-                    //System.Net.ServicePointManager.Expect100Continue = false;
-                    //var testw = plc.ReadAsync("DB42.DBW36").GetAwaiter().GetResult();
+                    testing.BlindPercentLRoomE = 0;
+                    plc.WriteClass(testing, 42, START_BY_ADR);
 
                     //myPLC.SetDataBlockAndStartByteAdr(42, 10);
                     //myPLC.WridteValue(21.60, PlcDataType.DWord);
@@ -60,6 +51,7 @@ namespace S7NetPlusConsoleCoreApp
                         Console.ReadLine();
                         return;
                     }
+                    myPLC.RestartConnection();
                     //myPLC.Close();
                     //myPLC.Open();
                     Console.WriteLine("Connected");
@@ -68,7 +60,7 @@ namespace S7NetPlusConsoleCoreApp
                     Console.WriteLine(plc.ReadTimeout);
                     //plc.Close();
                     //DB42.DBD10
-                    myPLC.SetDataBlockAndStartByteAdr(42, 10);
+                    myPLC.SetDataBlockAndStartByteAdr(42, START_BY_ADR);
                     ////myPLC.WriteValue(21.60, PlcDataType.DWord);
 
                     myPLC.SetStartByteAdr(36);

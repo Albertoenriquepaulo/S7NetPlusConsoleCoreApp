@@ -81,7 +81,7 @@ namespace S7NetPlusConsoleCoreApp
         }
         #endregion
 
-        #region Open/Close Connection
+        #region Manage Connection
         public bool Open()
         {
             try
@@ -110,6 +110,23 @@ namespace S7NetPlusConsoleCoreApp
             }
 
         }
+
+        public bool RestartConnection()
+        {
+            try
+            {
+                PLC.Close();
+                PLC.Open();
+                return true;
+            }
+            catch (Exception)
+            {
+
+                return false;
+            }
+
+        }
+
         #endregion
 
         #region Writing Operations
@@ -149,25 +166,16 @@ namespace S7NetPlusConsoleCoreApp
         #region Reading Operations
         public bool ReadBool(string variable)
         {
-            PLC.Open();
-            //bool value = (bool)(this.PLC.Read(variable));
-            //PLC.Close();
             return (bool)(this.PLC.Read(variable));//value;
         }
         public bool ReadBool(DataType dataType, int db, int startByteAdr)
         {
-            //PLC.Open();
-            //bool value = Convert.ToBoolean(PLC.ReadBytes(dataType, db, startByteAdr, 1)[0]);
-            //PLC.Close();
             return Convert.ToBoolean(PLC.ReadBytes(dataType, db, startByteAdr, 1)[0]); //value;
         }
 
         [Obsolete]
         public double ReadDouble(string variable, int decimalNumbers)
         {
-            //PLC.Open();
-            //double value = Math.Round(((uint)PLC.Read(variable)).ConvertToDouble(), decimalNumbers);
-            //PLC.Close();
             return Math.Round(((uint)PLC.Read(variable)).ConvertToDouble(), decimalNumbers); //value;
         }
         public int ReadInt(string variable)
@@ -206,5 +214,41 @@ namespace S7NetPlusConsoleCoreApp
         }
         #endregion
 
+        #region Utilities
+        public static string FromDTLToDate(byte[] DTLBytes)
+        {
+            byte[] yearBytes = new byte[] { DTLBytes[0], DTLBytes[1] };
+            byte[] monthBytes = new byte[] { DTLBytes[2] };
+            byte[] dayBytes = new byte[] { DTLBytes[3] };
+            byte[] dayOfWeekByte = new byte[] { DTLBytes[4] };
+            byte[] hourBytes = new byte[] { DTLBytes[5] };
+            byte[] minBytes = new byte[] { DTLBytes[6] };
+            byte[] secBytes = new byte[] { DTLBytes[7] };
+            byte[] nanoSecBytes = new byte[] { DTLBytes[8], DTLBytes[9], DTLBytes[10], DTLBytes[11] };
+
+
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(yearBytes);
+                Array.Reverse(monthBytes);
+                Array.Reverse(dayBytes);
+                Array.Reverse(dayOfWeekByte);
+                Array.Reverse(hourBytes);
+                Array.Reverse(minBytes);
+                Array.Reverse(secBytes);
+                Array.Reverse(nanoSecBytes);
+            }
+
+            int year = BitConverter.ToInt16(yearBytes, 0);
+            uint month = (uint)monthBytes[0];
+            uint day = (uint)dayBytes[0];
+            uint dayOfWeek = (uint)dayOfWeekByte[0];
+            uint hour = (uint)hourBytes[0];
+            uint min = (uint)minBytes[0];
+            uint sec = (uint)secBytes[0];
+            int nanoSec = BitConverter.ToInt32(nanoSecBytes, 0);
+            return $"{year}-{month}-{day}-{hour}:{min}:{sec}:{nanoSec}";
+        }
+        #endregion
     }
 }
