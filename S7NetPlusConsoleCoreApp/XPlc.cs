@@ -1,4 +1,5 @@
 ﻿using S7.Net;
+//using S7.Net.Types;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -170,13 +171,22 @@ namespace S7NetPlusConsoleCoreApp
         }
         public bool ReadBool(DataType dataType, int db, int startByteAdr)
         {
-            return Convert.ToBoolean(PLC.ReadBytes(dataType, db, startByteAdr, 1)[0]); //value;
+            return Convert.ToBoolean(PLC.ReadBytes(dataType, db, startByteAdr, 1)[0]);
         }
 
         [Obsolete]
-        public double ReadDouble(string variable, int decimalNumbers)
+        public double ReadDWord(string variable, int decimalNumbers)
         {
-            return Math.Round(((uint)PLC.Read(variable)).ConvertToDouble(), decimalNumbers); //value;
+            return Math.Round(((uint)PLC.Read(variable)).ConvertToDouble(), decimalNumbers);
+        }
+        public double ReadDWord(int db, int startByteAdr, int decimalNumbers)
+        {
+            byte[] valuInBytes = PLC.ReadBytes(DataType.DataBlock, db, startByteAdr, 4);
+
+            ReverseIfIsLittleIndian(valuInBytes);
+            double myValue = BitConverter.ToSingle(valuInBytes, 0);
+
+            return Math.Round(myValue, decimalNumbers);
         }
         public int ReadInt(string variable)
         {
@@ -248,6 +258,12 @@ namespace S7NetPlusConsoleCoreApp
             uint sec = (uint)secBytes[0];
             int nanoSec = BitConverter.ToInt32(nanoSecBytes, 0);
             return $"{year}-{month}-{day}-{hour}:{min}:{sec}:{nanoSec}";
+        }
+
+        public void ReverseIfIsLittleIndian(byte[] value)
+        {
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(value);
         }
         #endregion
     }

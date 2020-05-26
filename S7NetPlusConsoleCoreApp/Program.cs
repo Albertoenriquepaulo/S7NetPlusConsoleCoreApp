@@ -24,6 +24,8 @@ namespace S7NetPlusConsoleCoreApp
                     int sintValue = Convert.ToInt32(plc.Read("DB42.DBB9"));
                     Test testing1 = plc.ReadClass<Test>(42, START_BY_ADR);
 
+                    var dwordValue = myPLC.ReadDWord(42, 10);
+                    var dwordValue1 = myPLC.ReadDWord("DB42.DBD10", 2);
 
                     //if (BitConverter.IsLittleEndian)
                     //    Array.Reverse(testing.AlbertoRecibir4);
@@ -74,10 +76,10 @@ namespace S7NetPlusConsoleCoreApp
                     //myPLC.WriteBit(2, true);
 
                     bool heaterRoom1 = myPLC.ReadBool("A9.2");
-                    double tempRoom1 = myPLC.ReadDouble("MD104", 1);
-                    double tempSPRoom1 = myPLC.ReadDouble("MD200", 1);
-                    double humidityRoom1 = myPLC.ReadDouble("MD168", 1);
-                    double DB42_DBD10 = myPLC.ReadDouble("DB42.DBD10", 1);
+                    double tempRoom1 = myPLC.ReadDWord("MD104", 1);
+                    double tempSPRoom1 = myPLC.ReadDWord("MD200", 1);
+                    double humidityRoom1 = myPLC.ReadDWord("MD168", 1);
+                    double DB42_DBD10 = myPLC.ReadDWord("DB42.DBD10", 1);
                     bool DB42_DBX34_0 = myPLC.ReadBool(DataType.DataBlock, 42, 34);
 
                     int DB42_DBW36 = myPLC.ReadInt("DB42.DBW36");
