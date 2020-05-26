@@ -1,5 +1,6 @@
 ﻿using S7.Net;
 //using S7.Net.Types;
+//using S7.Net.Types;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -135,14 +136,9 @@ namespace S7NetPlusConsoleCoreApp
             switch (byteSize)
             {
                 case PlcDataType.Word:
-                    //ushort intValueToWrite = (ushort)Convert.ToInt16(value);
-                    //PLC.Write($"DB{DB}.DBW{StartByteAdress}", intValueToWrite);
-
                     ushort ValueToWrite1 = (ushort)Convert.ToInt16(value);
                     byte[] byteArray1 = BitConverter.GetBytes(ValueToWrite1);
                     Array.Reverse(byteArray1, 0, ByteSize);
-                    // PLC.WriteBytes(DataType.DataBlock, DB, StartByteAdress, byteArray1);
-
                     ValueToWriteWord = (ushort)(value);
                     PLC.WriteBytes(DataType.DataBlock, DB, StartByteAdress, ValueToWriteInBytes);
                     break;
@@ -171,27 +167,49 @@ namespace S7NetPlusConsoleCoreApp
         {
             return Convert.ToBoolean(PLC.ReadBytes(dataType, db, startByteAdr, 1)[0]);
         }
-
         [Obsolete]
-        public double ReadDWord(string variable, int decimalNumbers)
+        public double ReadDWordReal(string variable, int decimalNumbers)
         {
             return Math.Round(((uint)PLC.Read(variable)).ConvertToDouble(), decimalNumbers);
         }
-        public double ReadDWord(int db, int startByteAdr, int decimalNumbers)
+        public double ReadDWordReal(int db, int startByteAdr, int decimalNumbers)
+        {
+            byte[] valuInBytes = PLC.ReadBytes(DataType.DataBlock, db, startByteAdr, 4);
+            ReverseIfIsLittleIndian(valuInBytes);
+            double value = BitConverter.ToSingle(valuInBytes, 0);
+
+            return Math.Round(value, decimalNumbers);
+        }
+        public int ReadDWordInteger(int db, int startByteAdr)
         {
             byte[] valuInBytes = PLC.ReadBytes(DataType.DataBlock, db, startByteAdr, 4);
 
-            ReverseIfIsLittleIndian(valuInBytes);
-            double myValue = BitConverter.ToSingle(valuInBytes, 0);
-
-            return Math.Round(myValue, decimalNumbers);
+            return (int)S7.Net.Types.DWord.FromByteArray(valuInBytes);
         }
-        public int ReadInt(string variable)
+        public int ReadDWordInteger(string variable)
         {
-            //int test = Int.FromByteArray((byte[])PLC.Read(variable));
-            //PLC.Open();
+            UInt32 value = (UInt32)PLC.Read(variable);
+            return (int)value;
+        }
+        public int ReadWordInt(string variable)
+        {
+            return (ushort)PLC.Read(variable);
+
+        }
+        public int ReadWordInt(int db, int startByteAdr)
+        {
+            byte[] valuInBytes = PLC.ReadBytes(DataType.DataBlock, db, startByteAdr, 2);
+
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(valuInBytes);
+
+            ushort num = BitConverter.ToUInt16(valuInBytes, 0);
+
+            return BitConverter.ToUInt16(valuInBytes, 0); //(UInt16)S7.Net.Types.DInt.FromByteArray(valuInBytes);
+        }
+        public int ReadDIntDelete(string variable)
+        {
             var value = PLC.Read(variable);
-            //PLC.Close();
             if (Convert.ToInt32(value) == 0)
             {
                 return 0;
@@ -208,10 +226,6 @@ namespace S7NetPlusConsoleCoreApp
 
             int i = BitConverter.ToInt32(test, 0);
             return i;
-        }
-        public int ReadDInt(string variable)
-        {
-            return (ushort)PLC.Read(variable);
         }
         public int ReadClass(object sourceClass, int db, int startByteAdr = 0)
         {

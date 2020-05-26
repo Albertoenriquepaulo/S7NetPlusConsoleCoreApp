@@ -9,28 +9,60 @@ namespace S7NetPlusConsoleCoreApp
         [Obsolete]
         static void Main(string[] args)
         {
-            PLCSettings MyPLCSettings = new PLCSettings(CpuType.S71200, "192.168.100.65", 4000, 1, 0);
+            PLCSettings MyPLCSettings = new PLCSettings(CpuType.S71200, "192.168.100.65", 0, 1);
+            PLCSettings MyPLCSettingsPLCSim = new PLCSettings(CpuType.S71200, "127.0.0.1", 0, 1);
+            XPlc myPLCSim = new XPlc(MyPLCSettingsPLCSim);
             XPlc myPLC = new XPlc(MyPLCSettings);
+
             const int START_BY_ADR = 8;
-            Plc plc = new Plc(CpuType.S71200, "192.168.100.65", 4000, 1, 0);
-            //using (Plc plc = new Plc(PLCSettings.CPU, PLCSettings.IP, PLCSettings.Port, PLCSettings.Rack, PLCSettings.Slot))
-            //{
+
             try
             {
-                //XPlc myPLC = new XPlc(plc);
                 myPLC.RestartConnection();
-
-                //Test testing = plc.ReadClass<Test>(42, 0);
+                myPLCSim.RestartConnection();
                 Test testing = new Test();
-                plc.ReadClass(testing, 42, START_BY_ADR);
                 myPLC.ReadClass(testing, 42, START_BY_ADR);
-                char vOut = Convert.ToChar(testing.AlbertoRecibir11);
-                int sintValue = Convert.ToInt32(plc.Read("DB42.DBB9"));
-                Test testing1 = plc.ReadClass<Test>(42, START_BY_ADR);
 
-                var dwordValue = myPLC.ReadDWord(42, 10, 2);
-                var dwordValue1 = myPLC.ReadDWord("DB42.DBD10", 2);
-                var drealValue = myPLC.ReadDWord(42, 318, 2);
+                //REAL and WORD (4bytes)
+                double DB40_DBD4 = myPLC.ReadDWordReal(40, 4, 2);
+                double DB40_DBD4a = myPLC.ReadDWordReal("DB40.DBD4", 2);
+
+                double DB1_DBD4 = myPLCSim.ReadDWordReal(1, 4, 2);
+                double DB1_DBD4a = myPLCSim.ReadDWordReal("DB1.DBD4", 2);
+
+                double DB1_DBD34 = myPLCSim.ReadDWordReal(1, 34, 2);
+                double DB1_DBD34a = myPLCSim.ReadDWordReal("DB1.DBD34", 2);
+
+
+                //INTEGER (4bytes)
+                int DB1_DBD12 = myPLCSim.ReadDWordInteger(1, 12);
+                int DB1_DBD12a = myPLCSim.ReadDWordInteger("DB1.DBD12");
+
+                int DB1_DBD8 = myPLCSim.ReadDWordInteger(1, 8);
+                int DB1_DBD8a = myPLCSim.ReadDWordInteger("DB1.DBD8");
+
+                //INTEGER (2bytes)
+                int DB1_DBW16 = myPLCSim.ReadWordInt("DB1.DBW16");
+                int DB1_DBW16a = myPLCSim.ReadWordInt(1, 16);
+
+                int DB1_DBW2 = myPLCSim.ReadWordInt("DB1.DBW2");
+                int DB1_DBW2a = myPLCSim.ReadWordInt(1, 2);
+
+                //BOOL
+                bool DB1_DBX0_0 = myPLCSim.ReadBool("DB1.DBX0.0");
+                bool DB1_DBX0_0a = myPLCSim.ReadBool(DataType.DataBlock, 1, 0);
+
+                bool DB1_DBX0_1 = myPLCSim.ReadBool("DB1.DBX0.1");
+                bool DB1_DBX0_1a = myPLCSim.ReadBool(DataType.DataBlock, 1, 1);
+
+
+                char vOut = Convert.ToChar(testing.AlbertoRecibir11);
+                //int sintValue = Convert.ToInt32(plc.Read("DB42.DBB9"));
+                Test testing1 = myPLC.ReadClass<Test>(42, START_BY_ADR);
+
+                var dwordValue = myPLC.ReadDWordReal(42, 10, 2);
+                var dwordValue1 = myPLC.ReadDWordReal("DB42.DBD10", 2);
+                var drealValue = myPLC.ReadDWordReal(42, 318, 2);
 
                 //if (BitConverter.IsLittleEndian)
                 //    Array.Reverse(testing.AlbertoRecibir4);
@@ -40,7 +72,7 @@ namespace S7NetPlusConsoleCoreApp
                 testing.AlbertoRecibir9++;
                 testing.AlbertoRecibir11++;
                 testing.BlindPercentLRoomE = 0;
-                plc.WriteClass(testing, 42, START_BY_ADR);
+                //plc.WriteClass(testing, 42, START_BY_ADR);
 
                 //myPLC.SetDataBlockAndStartByteAdr(42, 10);
                 //myPLC.WridteValue(21.60, PlcDataType.DWord);
@@ -62,9 +94,8 @@ namespace S7NetPlusConsoleCoreApp
                 //myPLC.Close();
                 //myPLC.Open();
                 Console.WriteLine("Connected");
+                myPLC.SetDataBlockAndStartByteAdr(4, START_BY_ADR);
 
-                Console.WriteLine(plc.WriteTimeout);
-                Console.WriteLine(plc.ReadTimeout);
                 //plc.Close();
                 //DB42.DBD10
                 myPLC.SetDataBlockAndStartByteAdr(42, START_BY_ADR);
@@ -81,20 +112,22 @@ namespace S7NetPlusConsoleCoreApp
                 //myPLC.WriteBit(2, true);
 
                 bool heaterRoom1 = myPLC.ReadBool("A9.2");
-                double tempRoom1 = myPLC.ReadDWord("MD104", 1);
-                double tempSPRoom1 = myPLC.ReadDWord("MD200", 1);
-                double humidityRoom1 = myPLC.ReadDWord("MD168", 1);
-                double DB42_DBD10 = myPLC.ReadDWord("DB42.DBD10", 1);
+                double tempRoom1 = myPLC.ReadDWordReal("MD104", 1);
+                double tempSPRoom1 = myPLC.ReadDWordReal("MD200", 1);
+                double humidityRoom1 = myPLC.ReadDWordReal("MD168", 1);
+                double DB42_DBD10 = myPLC.ReadDWordReal("DB42.DBD10", 1);
                 bool DB42_DBX34_0 = myPLC.ReadBool(DataType.DataBlock, 42, 34);
 
-                int DB42_DBW36 = myPLC.ReadInt("DB42.DBW36");
-                int DB42_DBB322 = myPLC.ReadInt("DB42.DBB322");
+                int DB42_DBW36 = myPLC.ReadWordInt("DB42.DBW36");
+                int DB42_DBB322 = myPLC.ReadWordInt("DB42.DBB322");
                 myPLC.SetStartByteAdr(318);
 
                 //double DB42_DBD318 = myPLC.ReadDouble("DB42.DBD318", 1);
-                plc.Open();
-                double DB42_DBD318 = Math.Round(S7.Net.Types.Double.FromByteArray(plc.ReadBytes(DataType.DataBlock, 42, 318, 4)), 2);
-                plc.Close();
+                ////plc.Open();
+                ////double DB42_DBD318 = Math.Round(S7.Net.Types.Double.FromByteArray(plc.ReadBytes(DataType.DataBlock, 42, 318, 4)), 2);
+                ////plc.Close();
+                double DB42_DBD318 = myPLC.ReadDWordReal(42, 318, 2);
+
                 Console.WriteLine($"Temperatura en habitación 1         =   {tempRoom1}");
                 Console.WriteLine($"Temperatura deseada en habitación 1 =   {tempSPRoom1}");
                 Console.WriteLine($"Humedad Relativa en habitacion 1    =   {humidityRoom1}");
@@ -113,7 +146,7 @@ namespace S7NetPlusConsoleCoreApp
                 //Test testing = plc.ReadClass<Test>(23, 0);
                 //Test testin1 = myPLC.ReadClass<Test>(23, 0);
 
-                plc.Close();
+                myPLC.CloseConnection();
             }
             catch (Exception ex)
             {

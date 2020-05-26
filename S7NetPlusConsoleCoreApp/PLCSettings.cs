@@ -20,11 +20,11 @@ namespace S7NetPlusConsoleCoreApp
         //static public bool IsAvailable { get; }
         //static public bool IsConnected { get; }
 
-        public PLCSettings(CpuType cpu, string ip, int port, short slot, short rack)
+        public PLCSettings(CpuType cpu, string ip, short rack, short slot, int port = 102)
         {
             CPU = cpu;
-            Slot = slot;
             Rack = rack;
+            Slot = slot;
             Port = port;
             IP = ip;
         }
