@@ -34,13 +34,12 @@ namespace S7NetPlusConsoleCoreApp
             }
         }
 
-        #region Contructor
-        public XPlc(Plc plc, int dB = 0, int startByteAdr = 0)
+        #region CONSTRUCTOR
+        public XPlc(PLCSettings plcSettings, int dB = 0, int startByteAdr = 0)
         {
-            PLC = plc;
+            PLC = new Plc(plcSettings.CPU, plcSettings.IP, plcSettings.Port, plcSettings.Rack, plcSettings.Slot);
             DB = dB;
-            this.StartByteAdress = startByteAdr;
-
+            StartByteAdress = startByteAdr;
         }
         #endregion
 
@@ -87,7 +86,7 @@ namespace S7NetPlusConsoleCoreApp
         {
             try
             {
-                this.PLC.Open();
+                PLC.Open();
                 return true;
             }
             catch (Exception)
@@ -111,7 +110,6 @@ namespace S7NetPlusConsoleCoreApp
             }
 
         }
-
         public bool RestartConnection()
         {
             try
@@ -191,16 +189,15 @@ namespace S7NetPlusConsoleCoreApp
         public int ReadInt(string variable)
         {
             //int test = Int.FromByteArray((byte[])PLC.Read(variable));
-            PLC.Open();
+            //PLC.Open();
             var value = PLC.Read(variable);
-            PLC.Close();
+            //PLC.Close();
             if (Convert.ToInt32(value) == 0)
             {
                 return 0;
             }
             return (ushort)value;
         }
-
         public int ReadBytes(DataType dataType, int db, int startByteAdr, int count)
         {
             byte[] test = PLC.ReadBytes(dataType, db, startByteAdr, count);
@@ -212,16 +209,19 @@ namespace S7NetPlusConsoleCoreApp
             int i = BitConverter.ToInt32(test, 0);
             return i;
         }
-
         public int ReadDInt(string variable)
         {
             return (ushort)PLC.Read(variable);
         }
-
+        public int ReadClass(object sourceClass, int db, int startByteAdr = 0)
+        {
+            return PLC.ReadClass(sourceClass, db, startByteAdr);
+        }
         public T ReadClass<T>(int db, int startByteAdr = 0) where T : class
         {
             return PLC.ReadClass<T>(db, startByteAdr);
         }
+
         #endregion
 
         #region Utilities
