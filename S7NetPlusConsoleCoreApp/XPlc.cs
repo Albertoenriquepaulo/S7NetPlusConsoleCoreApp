@@ -83,7 +83,7 @@ namespace S7NetPlusConsoleCoreApp
         #endregion
 
         #region Manage Connection
-        public bool Open()
+        public bool Connect()
         {
             try
             {
@@ -97,7 +97,7 @@ namespace S7NetPlusConsoleCoreApp
             }
 
         }
-        public bool Close()
+        public bool CloseConnection()
         {
             try
             {

@@ -24,8 +24,9 @@ namespace S7NetPlusConsoleCoreApp
                     int sintValue = Convert.ToInt32(plc.Read("DB42.DBB9"));
                     Test testing1 = plc.ReadClass<Test>(42, START_BY_ADR);
 
-                    var dwordValue = myPLC.ReadDWord(42, 10);
+                    var dwordValue = myPLC.ReadDWord(42, 10, 2);
                     var dwordValue1 = myPLC.ReadDWord("DB42.DBD10", 2);
+                    var drealValue = myPLC.ReadDWord(42, 318, 2);
 
                     //if (BitConverter.IsLittleEndian)
                     //    Array.Reverse(testing.AlbertoRecibir4);
