@@ -13,15 +13,33 @@ namespace S7NetPlusConsoleCoreApp
         private Plc PLC { get; }
         private Single ValueToWriteDWord { get; set; }
         private ushort ValueToWriteWord { get; set; }
+        private Int32 ValueToWriteDInt { get; set; }
         private bool BitValueToWrite { get; set; }
         private int DB { get; set; }
         private int StartByteAdress { get; set; }
-        private int ByteSize { get; set; }
+        private int ByteSize
+        {
+            get
+            {
+                switch (Datatype)
+                {
+                    case PlcDataType.Bit:
+                        return PlcDataType.Bit;
+                    case PlcDataType.Word:
+                        return PlcDataType.Word;
+                    case PlcDataType.DWord:
+                    case PlcDataType.DInt:
+                        return PlcDataType.DWord;
+                }
+                return 0;
+            }
+        }
+        public int Datatype { get; set; }
         private byte[] ValueToWriteInBytes
         {
             get
             {
-                switch (ByteSize)
+                switch (Datatype)
                 {
                     case PlcDataType.Word:
                         byte[] byteArrayWord = BitConverter.GetBytes(ValueToWriteWord);
@@ -31,6 +49,10 @@ namespace S7NetPlusConsoleCoreApp
                         byte[] byteArrayDWord = BitConverter.GetBytes(ValueToWriteDWord);
                         Array.Reverse(byteArrayDWord, 0, ByteSize);
                         return byteArrayDWord;
+                    case PlcDataType.DInt:
+                        byte[] byteArrayDInt = BitConverter.GetBytes(ValueToWriteDInt);
+                        Array.Reverse(byteArrayDInt, 0, ByteSize);
+                        return byteArrayDInt;
                 }
                 return new byte[0];
             }
@@ -131,31 +153,88 @@ namespace S7NetPlusConsoleCoreApp
         #endregion
 
         #region Writing Operations
-        public void WriteValue(double value, int byteSize)
+        public void WriteValue(double value, int datatype, int db = -1, int startbyaddress = -1, DataType containerDataType = DataType.DataBlock)
         {
-            ByteSize = byteSize;
-            switch (byteSize)
+            if (db != -1) DB = db;
+            if (startbyaddress != -1) StartByteAdress = startbyaddress;
+
+            Datatype = datatype;
+            switch (Datatype)
             {
                 case PlcDataType.Word:
-                    ushort ValueToWrite1 = (ushort)Convert.ToInt16(value);
-                    byte[] byteArray1 = BitConverter.GetBytes(ValueToWrite1);
-                    Array.Reverse(byteArray1, 0, ByteSize);
                     ValueToWriteWord = (ushort)(value);
-                    PLC.WriteBytes(DataType.DataBlock, DB, StartByteAdress, ValueToWriteInBytes);
+                    PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
                     break;
 
                 case PlcDataType.DWord:
                     ValueToWriteDWord = Convert.ToSingle(value);
-                    PLC.WriteBytes(DataType.DataBlock, DB, StartByteAdress, ValueToWriteInBytes);
+                    PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                    break;
+                case PlcDataType.DInt:
+                    ValueToWriteDInt = Convert.ToInt32(value);
+                    PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                    break;
+                default:
+                    ValueToWriteDWord = Convert.ToSingle(value);
+                    PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
                     break;
             }
         }
+        /// <summary>
+        /// WriteValueAsync() -> Write valiues to PLC Async,
+        /// </summary>
+        /// <param name="datatype"></param> word, Dword, Int, Double, Bit, Byte, etc
+        /// <param name="containerDataType">Datatype in PLC side, example, input, datablock, output, timer, counter, etc</param>
+        /// <returns></returns>
+        public async Task WriteValueAsync(double value, int datatype, int db = -1, int startbyaddress = -1, DataType containerDataType = DataType.DataBlock)
+        {
+            if (db != -1) DB = db;
+            if (startbyaddress != -1) StartByteAdress = startbyaddress;
 
+            Datatype = datatype;
+            switch (Datatype)
+            {
+                case PlcDataType.Word:
+                    ValueToWriteWord = (ushort)(value);
+                    await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                    break;
+
+                case PlcDataType.DWord:
+                    ValueToWriteDWord = Convert.ToSingle(value);
+                    await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                    break;
+                case PlcDataType.DInt:
+                    ValueToWriteDInt = Convert.ToInt32(value);
+                    await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                    break;
+                default:
+                    ValueToWriteDWord = Convert.ToSingle(value);
+                    await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                    break;
+            }
+        }
         public void WriteBit(int bitAdr, bool value)
         {
-            ByteSize = 1;
+            Datatype = PlcDataType.Bit;
             BitValueToWrite = value;
             PLC.WriteBit(DataType.DataBlock, DB, StartByteAdress, bitAdr, BitValueToWrite);
+        }
+
+        //Este método está incluido en el caso 3 de WriteValue, se debe borrar en cualquier momento
+        public void WriteDInt(Int32 value)
+        {
+            Datatype = PlcDataType.DInt;
+            ValueToWriteDInt = Convert.ToInt32(value);
+
+            PLC.WriteBytes(DataType.DataBlock, DB, StartByteAdress, ValueToWriteInBytes);
+        }
+        public void WriteTesting(UInt32 value) //To delete
+        {
+            Datatype = PlcDataType.DInt;
+            byte[] byteArrayWord = BitConverter.GetBytes(value);
+            Array.Reverse(byteArrayWord, 0, 4);
+
+            PLC.WriteBytes(DataType.DataBlock, DB, StartByteAdress, byteArrayWord);
         }
         #endregion
 
@@ -204,7 +283,6 @@ namespace S7NetPlusConsoleCoreApp
 
             return (int)S7.Net.Types.DWord.FromByteArray(valuInBytes);
         }
-
         public int ReadDWordInteger(string variable)
         {
             UInt32 value = (UInt32)PLC.Read(variable);
@@ -221,13 +299,12 @@ namespace S7NetPlusConsoleCoreApp
             UInt32 value = (UInt32)(await PLC.ReadAsync(variable));
             return (int)value;
         }
-
-        public int ReadWordInt(string variable)
+        public int ReadWordInteger(string variable)
         {
             return (ushort)PLC.Read(variable);
 
         }
-        public int ReadWordInt(int db, int startByteAdr)
+        public int ReadWordInteger(int db, int startByteAdr)
         {
             byte[] valuInBytes = PLC.ReadBytes(DataType.DataBlock, db, startByteAdr, 2);
 
@@ -238,12 +315,12 @@ namespace S7NetPlusConsoleCoreApp
 
             return BitConverter.ToUInt16(valuInBytes, 0); //(UInt16)S7.Net.Types.DInt.FromByteArray(valuInBytes);
         }
-        public async Task<int> ReadWordIntAsync(string variable)
+        public async Task<int> ReadWordIntegerAsync(string variable)
         {
             return (ushort)(await PLC.ReadAsync(variable));
 
         }
-        public async Task<int> ReadWordIntAsync(int db, int startByteAdr)
+        public async Task<int> ReadWordIntegerAsync(int db, int startByteAdr)
         {
             byte[] valuInBytes = await PLC.ReadBytesAsync(DataType.DataBlock, db, startByteAdr, 2);
 
@@ -339,7 +416,6 @@ namespace S7NetPlusConsoleCoreApp
             int nanoSec = BitConverter.ToInt32(nanoSecBytes, 0);
             return $"{year}-{month}-{day}-{hour}:{min}:{sec}:{nanoSec}";
         }
-
         public void ReverseIfIsLittleIndian(byte[] value)
         {
             if (BitConverter.IsLittleEndian)

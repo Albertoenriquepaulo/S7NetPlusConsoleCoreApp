@@ -9,5 +9,6 @@ namespace S7NetPlusConsoleCoreApp
         public const int Bit = 1;
         public const int Word = 2;
         public const int DWord = 4;
+        public const int DInt = 5;
     }
 }
