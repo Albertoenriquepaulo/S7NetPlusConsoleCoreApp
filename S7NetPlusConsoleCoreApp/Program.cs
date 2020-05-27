@@ -1,5 +1,6 @@
 ﻿using S7.Net;
 using System;
+using System.Threading.Tasks;
 
 namespace S7NetPlusConsoleCoreApp
 {
@@ -7,7 +8,7 @@ namespace S7NetPlusConsoleCoreApp
     {
 
         [Obsolete]
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             PLCSettings MyPLCSettings = new PLCSettings(CpuType.S71200, "192.168.100.65", 0, 1);
             PLCSettings MyPLCSettingsPLCSim = new PLCSettings(CpuType.S71200, "127.0.0.1", 0, 1);
@@ -21,48 +22,48 @@ namespace S7NetPlusConsoleCoreApp
                 myPLC.RestartConnection();
                 myPLCSim.RestartConnection();
                 Test testing = new Test();
-                myPLC.ReadClass(testing, 42, START_BY_ADR);
+                await myPLC.ReadClassAsync(testing, 42, START_BY_ADR);
 
                 //REAL and WORD (4bytes)
-                double DB40_DBD4 = myPLC.ReadDWordReal(40, 4, 2);
-                double DB40_DBD4a = myPLC.ReadDWordReal("DB40.DBD4", 2);
+                double DB40_DBD4 = await myPLC.ReadDWordRealAsync(40, 4, 2);
+                double DB40_DBD4a = await myPLC.ReadDWordRealAsync("DB40.DBD4", 2);
 
-                double DB1_DBD4 = myPLCSim.ReadDWordReal(1, 4, 2);
-                double DB1_DBD4a = myPLCSim.ReadDWordReal("DB1.DBD4", 2);
+                double DB1_DBD4 = await myPLCSim.ReadDWordRealAsync(1, 4, 2);
+                double DB1_DBD4a = await myPLCSim.ReadDWordRealAsync("DB1.DBD4", 2);
 
-                double DB1_DBD34 = myPLCSim.ReadDWordReal(1, 34, 2);
-                double DB1_DBD34a = myPLCSim.ReadDWordReal("DB1.DBD34", 2);
+                double DB1_DBD34 = await myPLCSim.ReadDWordRealAsync(1, 34, 2);
+                double DB1_DBD34a = await myPLCSim.ReadDWordRealAsync("DB1.DBD34", 2);
 
 
                 //INTEGER (4bytes)
-                int DB1_DBD12 = myPLCSim.ReadDWordInteger(1, 12);
-                int DB1_DBD12a = myPLCSim.ReadDWordInteger("DB1.DBD12");
+                int DB1_DBD12 = await myPLCSim.ReadDWordIntegerAsync(1, 12);
+                int DB1_DBD12a = await myPLCSim.ReadDWordIntegerAsync("DB1.DBD12");
 
-                int DB1_DBD8 = myPLCSim.ReadDWordInteger(1, 8);
-                int DB1_DBD8a = myPLCSim.ReadDWordInteger("DB1.DBD8");
+                int DB1_DBD8 = await myPLCSim.ReadDWordIntegerAsync(1, 8);
+                int DB1_DBD8a = await myPLCSim.ReadDWordIntegerAsync("DB1.DBD8");
 
                 //INTEGER (2bytes)
-                int DB1_DBW16 = myPLCSim.ReadWordInt("DB1.DBW16");
-                int DB1_DBW16a = myPLCSim.ReadWordInt(1, 16);
+                int DB1_DBW16 = await myPLCSim.ReadWordIntAsync("DB1.DBW16");
+                int DB1_DBW16a = await myPLCSim.ReadWordIntAsync(1, 16);
 
-                int DB1_DBW2 = myPLCSim.ReadWordInt("DB1.DBW2");
-                int DB1_DBW2a = myPLCSim.ReadWordInt(1, 2);
+                int DB1_DBW2 = await myPLCSim.ReadWordIntAsync("DB1.DBW2");
+                int DB1_DBW2a = await myPLCSim.ReadWordIntAsync(1, 2);
 
                 //BOOL
-                bool DB1_DBX0_0 = myPLCSim.ReadBool("DB1.DBX0.0");
-                bool DB1_DBX0_0a = myPLCSim.ReadBool(DataType.DataBlock, 1, 0);
+                bool DB1_DBX0_0 = await myPLCSim.ReadBoolAsync("DB1.DBX0.0");
+                bool DB1_DBX0_0a = await myPLCSim.ReadBoolAsync(DataType.DataBlock, 1, 0, 0);
 
-                bool DB1_DBX0_1 = myPLCSim.ReadBool("DB1.DBX0.1");
-                bool DB1_DBX0_1a = myPLCSim.ReadBool(DataType.DataBlock, 1, 1);
+                bool DB1_DBX0_1 = await myPLCSim.ReadBoolAsync("DB1.DBX0.1");
+                bool DB1_DBX0_1a = await myPLCSim.ReadBoolAsync(DataType.DataBlock, 1, 0, 1);
 
 
                 char vOut = Convert.ToChar(testing.AlbertoRecibir11);
                 //int sintValue = Convert.ToInt32(plc.Read("DB42.DBB9"));
-                Test testing1 = myPLC.ReadClass<Test>(42, START_BY_ADR);
+                Test testing1 = await myPLC.ReadClassAsync<Test>(42, START_BY_ADR);
 
-                var dwordValue = myPLC.ReadDWordReal(42, 10, 2);
-                var dwordValue1 = myPLC.ReadDWordReal("DB42.DBD10", 2);
-                var drealValue = myPLC.ReadDWordReal(42, 318, 2);
+                var dwordValue = await myPLC.ReadDWordRealAsync(42, 10, 2);
+                var dwordValue1 = await myPLC.ReadDWordRealAsync("DB42.DBD10", 2);
+                var drealValue = await myPLC.ReadDWordRealAsync(42, 318, 2);
 
                 //if (BitConverter.IsLittleEndian)
                 //    Array.Reverse(testing.AlbertoRecibir4);
@@ -111,22 +112,22 @@ namespace S7NetPlusConsoleCoreApp
                 //myPLC.SetStartByteAdr(34);
                 //myPLC.WriteBit(2, true);
 
-                bool heaterRoom1 = myPLC.ReadBool("A9.2");
-                double tempRoom1 = myPLC.ReadDWordReal("MD104", 1);
-                double tempSPRoom1 = myPLC.ReadDWordReal("MD200", 1);
-                double humidityRoom1 = myPLC.ReadDWordReal("MD168", 1);
-                double DB42_DBD10 = myPLC.ReadDWordReal("DB42.DBD10", 1);
-                bool DB42_DBX34_0 = myPLC.ReadBool(DataType.DataBlock, 42, 34);
+                bool heaterRoom1 = await myPLC.ReadBoolAsync("A9.2");
+                double tempRoom1 = await myPLC.ReadDWordRealAsync("MD104", 1);
+                double tempSPRoom1 = await myPLC.ReadDWordRealAsync("MD200", 1);  //OJO
+                double humidityRoom1 = await myPLC.ReadDWordRealAsync("MD168", 1);
+                double DB42_DBD10 = await myPLC.ReadDWordRealAsync("DB42.DBD10", 1);
+                bool DB42_DBX34_0 = await myPLC.ReadBoolAsync(DataType.DataBlock, 42, 34, 0);
 
-                int DB42_DBW36 = myPLC.ReadWordInt("DB42.DBW36");
-                int DB42_DBB322 = myPLC.ReadWordInt("DB42.DBB322");
+                int DB42_DBW36 = await myPLC.ReadWordIntAsync("DB42.DBW36");
+                // int DB42_DBB322 = myPLC.ReadWordInt("DB42.DBB322");
                 myPLC.SetStartByteAdr(318);
 
                 //double DB42_DBD318 = myPLC.ReadDouble("DB42.DBD318", 1);
                 ////plc.Open();
                 ////double DB42_DBD318 = Math.Round(S7.Net.Types.Double.FromByteArray(plc.ReadBytes(DataType.DataBlock, 42, 318, 4)), 2);
                 ////plc.Close();
-                double DB42_DBD318 = myPLC.ReadDWordReal(42, 318, 2);
+                double DB42_DBD318 = await myPLC.ReadDWordRealAsync(42, 318, 2);
 
                 Console.WriteLine($"Temperatura en habitación 1         =   {tempRoom1}");
                 Console.WriteLine($"Temperatura deseada en habitación 1 =   {tempSPRoom1}");

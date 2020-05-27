@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace S7NetPlusConsoleCoreApp
 {
@@ -159,13 +160,16 @@ namespace S7NetPlusConsoleCoreApp
         #endregion
 
         #region Reading Operations
-        public bool ReadBool(string variable)
+        public async Task<bool> ReadBoolAsync(string variable)
         {
-            return (bool)(this.PLC.Read(variable));//value;
+            return (bool)(await PLC.ReadAsync(variable));//value;
         }
-        public bool ReadBool(DataType dataType, int db, int startByteAdr)
+        public async Task<bool> ReadBoolAsync(DataType dataType, int db, int startByteAdr, int bitNumber)
         {
-            return Convert.ToBoolean(PLC.ReadBytes(dataType, db, startByteAdr, 1)[0]);
+            int oneByte = 1;
+            byte value = (await PLC.ReadBytesAsync(dataType, db, startByteAdr, oneByte))[0];
+            return (value & (1 << bitNumber)) != 0;
+            //Convert.ToBoolean(await PLC.ReadBytesAsync(dataType, db, startByteAdr, 1)[0]);
         }
         [Obsolete]
         public double ReadDWordReal(string variable, int decimalNumbers)
@@ -180,17 +184,44 @@ namespace S7NetPlusConsoleCoreApp
 
             return Math.Round(value, decimalNumbers);
         }
+        [Obsolete]
+        public async Task<double> ReadDWordRealAsync(string variable, int decimalNumbers)
+        {
+            var value = await PLC.ReadAsync(variable);
+            return Math.Round(((uint)value).ConvertToDouble(), decimalNumbers);
+        }
+        public async Task<double> ReadDWordRealAsync(int db, int startByteAdr, int decimalNumbers)
+        {
+            byte[] valuInBytes = await PLC.ReadBytesAsync(DataType.DataBlock, db, startByteAdr, 4);
+            ReverseIfIsLittleIndian(valuInBytes);
+            double value = BitConverter.ToSingle(valuInBytes, 0);
+
+            return Math.Round(value, decimalNumbers);
+        }
         public int ReadDWordInteger(int db, int startByteAdr)
         {
             byte[] valuInBytes = PLC.ReadBytes(DataType.DataBlock, db, startByteAdr, 4);
 
             return (int)S7.Net.Types.DWord.FromByteArray(valuInBytes);
         }
+
         public int ReadDWordInteger(string variable)
         {
             UInt32 value = (UInt32)PLC.Read(variable);
             return (int)value;
         }
+        public async Task<int> ReadDWordIntegerAsync(int db, int startByteAdr)
+        {
+            byte[] valuInBytes = await PLC.ReadBytesAsync(DataType.DataBlock, db, startByteAdr, 4);
+
+            return (int)S7.Net.Types.DWord.FromByteArray(valuInBytes);
+        }
+        public async Task<int> ReadDWordIntegerAsync(string variable)
+        {
+            UInt32 value = (UInt32)(await PLC.ReadAsync(variable));
+            return (int)value;
+        }
+
         public int ReadWordInt(string variable)
         {
             return (ushort)PLC.Read(variable);
@@ -199,6 +230,22 @@ namespace S7NetPlusConsoleCoreApp
         public int ReadWordInt(int db, int startByteAdr)
         {
             byte[] valuInBytes = PLC.ReadBytes(DataType.DataBlock, db, startByteAdr, 2);
+
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(valuInBytes);
+
+            ushort num = BitConverter.ToUInt16(valuInBytes, 0);
+
+            return BitConverter.ToUInt16(valuInBytes, 0); //(UInt16)S7.Net.Types.DInt.FromByteArray(valuInBytes);
+        }
+        public async Task<int> ReadWordIntAsync(string variable)
+        {
+            return (ushort)(await PLC.ReadAsync(variable));
+
+        }
+        public async Task<int> ReadWordIntAsync(int db, int startByteAdr)
+        {
+            byte[] valuInBytes = await PLC.ReadBytesAsync(DataType.DataBlock, db, startByteAdr, 2);
 
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(valuInBytes);
@@ -227,13 +274,32 @@ namespace S7NetPlusConsoleCoreApp
             int i = BitConverter.ToInt32(test, 0);
             return i;
         }
+        public async Task<int> ReadBytesAsync(DataType dataType, int db, int startByteAdr, int count)
+        {
+            byte[] test = await PLC.ReadBytesAsync(dataType, db, startByteAdr, count);
+
+            //DWord.FromByteArray(PLC.ReadBytes(dataType, db, startByteAdr, count));
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(test);
+
+            int i = BitConverter.ToInt32(test, 0);
+            return i;
+        }
         public int ReadClass(object sourceClass, int db, int startByteAdr = 0)
         {
             return PLC.ReadClass(sourceClass, db, startByteAdr);
         }
+        public async Task<Tuple<int, object>> ReadClassAsync(object sourceClass, int db, int startByteAdr = 0)
+        {
+            return await PLC.ReadClassAsync(sourceClass, db, startByteAdr);
+        }
         public T ReadClass<T>(int db, int startByteAdr = 0) where T : class
         {
             return PLC.ReadClass<T>(db, startByteAdr);
+        }
+        public async Task<T> ReadClassAsync<T>(int db, int startByteAdr = 0) where T : class
+        {
+            return await PLC.ReadClassAsync<T>(db, startByteAdr);
         }
 
         #endregion
