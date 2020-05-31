@@ -35,6 +35,7 @@ namespace S7NetPlusConsoleCoreApp
             }
         }
         public int Datatype { get; set; }
+        private string ErrorMessage { get; set; }
         private byte[] ValueToWriteInBytes
         {
             get
@@ -111,11 +112,12 @@ namespace S7NetPlusConsoleCoreApp
             try
             {
                 PLC.Open();
+                SetErrorMessageOk();
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                SetErrorMessageBad(ex.Message);
                 return false;
             }
 
@@ -125,11 +127,12 @@ namespace S7NetPlusConsoleCoreApp
             try
             {
                 PLC.Close();
+                SetErrorMessageOk();
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                SetErrorMessageBad(ex.Message);
                 return false;
             }
 
@@ -140,44 +143,54 @@ namespace S7NetPlusConsoleCoreApp
             {
                 PLC.Close();
                 PLC.Open();
+                SetErrorMessageOk();
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                SetErrorMessageBad(ex.Message);
                 return false;
             }
 
         }
-
         #endregion
 
         #region Writing Operations
-        public void WriteValue(double value, int datatype, int db = -1, int startbyaddress = -1, DataType containerDataType = DataType.DataBlock)
+        public bool WriteValue(double value, int datatype, int db = -1, int startbyaddress = -1, DataType containerDataType = DataType.DataBlock)
         {
             if (db != -1) DB = db;
             if (startbyaddress != -1) StartByteAdress = startbyaddress;
 
             Datatype = datatype;
-            switch (Datatype)
+            try
             {
-                case PlcDataType.Word:
-                    ValueToWriteWord = (ushort)(value);
-                    PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
-                    break;
+                switch (Datatype)
+                {
+                    case PlcDataType.Word:
+                        ValueToWriteWord = (ushort)(value);
+                        PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                        break;
 
-                case PlcDataType.DWord:
-                    ValueToWriteDWord = Convert.ToSingle(value);
-                    PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
-                    break;
-                case PlcDataType.DInt:
-                    ValueToWriteDInt = Convert.ToInt32(value);
-                    PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
-                    break;
-                default:
-                    ValueToWriteDWord = Convert.ToSingle(value);
-                    PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
-                    break;
+                    case PlcDataType.DWord:
+                        ValueToWriteDWord = Convert.ToSingle(value);
+                        PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                        break;
+                    case PlcDataType.DInt:
+                        ValueToWriteDInt = Convert.ToInt32(value);
+                        PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                        break;
+                    default:
+                        ValueToWriteDWord = Convert.ToSingle(value);
+                        PLC.WriteBytes(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                        break;
+                }
+                SetErrorMessageOk();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SetErrorMessageBad(ex.Message);
+                return false;
             }
         }
         /// <summary>
@@ -186,40 +199,121 @@ namespace S7NetPlusConsoleCoreApp
         /// <param name="datatype"></param> word, Dword, Int, Double, Bit, Byte, etc
         /// <param name="containerDataType">Datatype in PLC side, example, input, datablock, output, timer, counter, etc</param>
         /// <returns></returns>
-        public async Task WriteValueAsync(double value, int datatype, int db = -1, int startbyaddress = -1, DataType containerDataType = DataType.DataBlock)
+        public async Task<bool> WriteValueAsync(double value, int datatype, int db = -1, int startbyaddress = -1, DataType containerDataType = DataType.DataBlock)
         {
             if (db != -1) DB = db;
             if (startbyaddress != -1) StartByteAdress = startbyaddress;
 
             Datatype = datatype;
-            switch (Datatype)
+            try
             {
-                case PlcDataType.Word:
-                    ValueToWriteWord = (ushort)(value);
-                    await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
-                    break;
+                switch (Datatype)
+                {
+                    case PlcDataType.Word:
+                        ValueToWriteWord = (ushort)(value);
+                        await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                        break;
 
-                case PlcDataType.DWord:
-                    ValueToWriteDWord = Convert.ToSingle(value);
-                    await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
-                    break;
-                case PlcDataType.DInt:
-                    ValueToWriteDInt = Convert.ToInt32(value);
-                    await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
-                    break;
-                default:
-                    ValueToWriteDWord = Convert.ToSingle(value);
-                    await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
-                    break;
+                    case PlcDataType.DWord:
+                        ValueToWriteDWord = Convert.ToSingle(value);
+                        await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                        break;
+                    case PlcDataType.DInt:
+                        ValueToWriteDInt = Convert.ToInt32(value);
+                        await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                        break;
+                    default:
+                        ValueToWriteDWord = Convert.ToSingle(value);
+                        await PLC.WriteBytesAsync(containerDataType, DB, StartByteAdress, ValueToWriteInBytes);
+                        break;
+                }
+                SetErrorMessageOk();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SetErrorMessageBad(ex.Message);
+                return false;
             }
         }
-        public void WriteBit(int bitAdr, bool value)
+        public bool WriteBit(int bitAdr, bool value, int db = -1, int startbyaddress = -1, DataType containerDataType = DataType.DataBlock)
         {
+            if (db != -1) DB = db;
+            if (startbyaddress != -1) StartByteAdress = startbyaddress;
+
             Datatype = PlcDataType.Bit;
             BitValueToWrite = value;
-            PLC.WriteBit(DataType.DataBlock, DB, StartByteAdress, bitAdr, BitValueToWrite);
-        }
 
+            try
+            {
+                PLC.WriteBit(containerDataType, DB, StartByteAdress, bitAdr, BitValueToWrite);
+                SetErrorMessageOk();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SetErrorMessageBad(ex.Message);
+                return false;
+            }
+        }
+        public async Task<bool> WriteBitAsync(int bitAdr, bool value, int db = -1, int startbyaddress = -1, DataType containerDataType = DataType.DataBlock)
+        {
+            if (db != -1) DB = db;
+            if (startbyaddress != -1) StartByteAdress = startbyaddress;
+
+            Datatype = PlcDataType.Bit;
+            BitValueToWrite = value;
+
+            try
+            {
+                await PLC.WriteBitAsync(containerDataType, DB, StartByteAdress, bitAdr, BitValueToWrite);
+                SetErrorMessageOk();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SetErrorMessageBad(ex.Message);
+                return false;
+            }
+        }
+        public bool WriteBytes(byte[] value, int db = -1, int startbyaddress = -1, DataType containerDataType = DataType.DataBlock)
+        {
+            if (db != -1) DB = db;
+            if (startbyaddress != -1) StartByteAdress = startbyaddress;
+
+            Datatype = PlcDataType.Bytes;
+
+            try
+            {
+                PLC.WriteBytes(containerDataType, DB, startbyaddress, value);
+                SetErrorMessageOk();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SetErrorMessageBad(ex.Message);
+                return false;
+            }
+        }
+        public async Task<bool> WriteBytesAsync(byte[] value, int db = -1, int startbyaddress = -1, DataType containerDataType = DataType.DataBlock)
+        {
+            if (db != -1) DB = db;
+            if (startbyaddress != -1) StartByteAdress = startbyaddress;
+
+            Datatype = PlcDataType.Bytes;
+
+            try
+            {
+                await PLC.WriteBytesAsync(containerDataType, DB, startbyaddress, value);
+                SetErrorMessageOk();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SetErrorMessageBad(ex.Message);
+                return false;
+            }
+        }
         //Este método está incluido en el caso 3 de WriteValue, se debe borrar en cualquier momento
         public void WriteDInt(Int32 value)
         {
@@ -241,7 +335,17 @@ namespace S7NetPlusConsoleCoreApp
         #region Reading Operations
         public async Task<bool> ReadBoolAsync(string variable)
         {
-            return (bool)(await PLC.ReadAsync(variable));//value;
+            try
+            {
+                var value = await PLC.ReadAsync(variable);
+                SetErrorMessageOk();
+                return (bool)value;
+            }
+            catch (Exception ex)
+            {
+                SetErrorMessageBad(ex.Message);
+                throw;
+            }
         }
         public async Task<bool> ReadBoolAsync(DataType dataType, int db, int startByteAdr, int bitNumber)
         {
@@ -421,6 +525,19 @@ namespace S7NetPlusConsoleCoreApp
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(value);
         }
+        public void SetErrorMessageOk()
+        {
+            ErrorMessage = "Ok";
+        }
+        public void SetErrorMessageBad(string message)
+        {
+            ErrorMessage = message;
+        }
+        public string GetErrorMessage()
+        {
+            return ErrorMessage;
+        }
+
         #endregion
     }
 }

@@ -14,16 +14,20 @@ namespace S7NetPlusConsoleCoreApp
             PLCSettings MyPLCSettings = new PLCSettings(CpuType.S71200, "192.168.100.65", 0, 1);
             PLCSettings MyPLCSettingsPLCSim = new PLCSettings(CpuType.S71200, "127.0.0.1", 0, 1);
             XPlc myPLCSim = new XPlc(MyPLCSettingsPLCSim);
-            //XPlc myPLC = new XPlc(MyPLCSettings);
-
+            XPlc myPLC = new XPlc(MyPLCSettings);
             const int START_BY_ADR = 8;
 
             try
             {
-                ////myPLC.RestartConnection();
+                myPLC.RestartConnection();
                 myPLCSim.RestartConnection();
-                ////Test testing = new Test();
-                ////await myPLC.ReadClassAsync(testing, 42, START_BY_ADR);
+                Test testing = new Test();
+                await myPLC.ReadClassAsync(testing, 42, START_BY_ADR);
+                ///
+                await myPLC.WriteValueAsync(0, PlcDataType.DWord, 42, 10);
+
+
+                await myPLC.ReadClassAsync(testing, 42, START_BY_ADR);
 
                 //myPLCSim.SetDataBlockAndStartByteAdr(1, 12);
                 myPLCSim.WriteValue(0X222111, PlcDataType.DInt, 1, 12);
@@ -35,8 +39,10 @@ namespace S7NetPlusConsoleCoreApp
                 await myPLCSim.WriteValueAsync(2020, PlcDataType.DInt);
 
 
+
+
+
                 //REAL and WORD (4bytes)
-                ////double DB40_DBD4 = await myPLC.ReadDWordRealAsync(40, 4, 2);
                 ////double DB40_DBD4a = await myPLC.ReadDWordRealAsync("DB40.DBD4", 2);
 
                 double DB1_DBD4 = await myPLCSim.ReadDWordRealAsync(1, 4, 2);

@@ -45,16 +45,5 @@ namespace S7NetPlusConsoleCoreApp
                 return XPlc.FromDTLToDate(AlbertoRecibir4Bytes);
             }
         }
-
-
-
-
-        //public string AlbertoRecibir5 { get; set; }
-        //public DateTime AlbertoRecibir6 { get; set; }
-        //public DateTime AlbertoRecibir7 { get; set; }
-        //public int AlbertoRecibir8 { get; set; }
-        //public double AlbertoRecibir9 { get; set; }
-        //public byte[] AlbertoRecibir10 { get; set; }
-        //public char AlbertoRecibir11 { get; set; }
     }
 }
